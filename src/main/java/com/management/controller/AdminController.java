@@ -1,14 +1,13 @@
 package com.management.controller;
 
-import com.management.model.jsonrequestbody.ChooseProjectMeeting;
-import com.management.model.jsonrequestbody.ProjectCategoryInfo;
-import com.management.model.jsonrequestbody.UpdateProjectCategoryInfo;
+import com.management.model.jsonrequestbody.*;
 import com.management.model.ov.Result;
 import com.management.service.AdminService;
 import com.management.tools.JwtUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -30,41 +29,66 @@ public class AdminController {
 
     @GetMapping("/allProjectCategory")
     @ApiOperation(value = "查一个业务员负责的所有的项目大类", notes = "根据业务员工号查找他负责的所有的项目大类")
-    public Result findProjectCategoryInfo(@RequestHeader(value = "Authorization")String token) {
+    public Result findProjectCategoryInfo(@RequestHeader(value = "Authorization") String token) {
 
         String userId = JwtUtil.parseJwt(token);
         return adminService.someoneAllProjectCategory(userId);
     }
 
-    @PostMapping("/meetingResult")
+    @PostMapping("/isMeeting")
     @ApiOperation(value = "业务员选择指定项目上会，另外的项目申请失败", notes = "根据项目号查找项目后更新内容")
     public Result meetingResult(@RequestBody ChooseProjectMeeting info) {
 
         return adminService.chooseProjectMeeting(info);
     }
 
-    @PostMapping("projectCategory/1")
+    @PostMapping("/projectCategory/1")
     @ApiOperation(value = "业务员创建项目类别,默认为待审核")
-    public Result insertProjectCategory(@RequestHeader(value = "Authorization")String token,
-                                        @RequestBody ProjectCategoryInfo projectCategoryInfo){
+    public Result insertProjectCategory(@RequestHeader(value = "Authorization") String token,
+                                        @RequestBody ProjectCategoryInfo projectCategoryInfo) {
         String userId = JwtUtil.parseJwt(token);
-        return adminService.createProjectCategory(userId,projectCategoryInfo);
+        return adminService.createProjectCategory(userId, projectCategoryInfo);
     }
 
-    @PostMapping("projectCategory/2")
+    @PostMapping("/projectCategory/2")
     @ApiOperation(value = "业务员修改项目类别", notes = "根据项目号查找项目后更新内容")
-    public Result updateProject(@RequestHeader(value = "Authorization")String token,
-                                @RequestBody UpdateProjectCategoryInfo updateProjectCategoryInfo){
+    public Result updateProject(@RequestBody UpdateProjectCategoryInfo updateProjectCategoryInfo) {
 
         return adminService.updateProjectCategoryInfo(updateProjectCategoryInfo);
     }
 
-    @GetMapping("projectCategory/3")
+    @GetMapping("/projectCategory/3")
     @ApiOperation(value = "查询业务员负责的项目详细信息", notes = "根据业务员Id查询业务员负责的项目详细信息")
-    public Result queryProjectCategoryInfo(@RequestHeader(value = "Authorization")String token){
+    public Result queryProjectCategoryInfo(@RequestHeader(value = "Authorization") String token) {
 
         String userId = JwtUtil.parseJwt(token);
         return adminService.queryProjectCategory(userId);
     }
 
+    @PostMapping("deleteProjectCategory")
+    @ApiOperation(value = "根据项目大类id删除项目大类信息")
+    public Result deleteProjectCategory(@RequestBody DeleteProjectCategoryInfo info) {
+        return adminService.deleteProjectCategory(info);
+    }
+
+    @PostMapping("/firstTrial")
+    @ApiOperation(value = "业务员初审项目")
+    public Result adminFirstTrail(@RequestBody OneJudgeInfo info) {
+
+        return adminService.oneJudge(info);
+    }
+
+    @PostMapping("/meetingTrial")
+    @ApiOperation(value = "对项目会评")
+    public Result meetingTrail(@RequestBody MeetingResult info) {
+
+        return adminService.meetingReview(info);
+    }
+
+    @GetMapping("expertList")
+    @ApiOperation(value = "业务员在创建项目大类的时候指定一些审核专家来审核项目")
+    public Result getExpertList() {
+
+        return adminService.findExpertList();
+    }
 }
