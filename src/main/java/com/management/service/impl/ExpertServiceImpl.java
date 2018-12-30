@@ -76,7 +76,7 @@ public class ExpertServiceImpl implements ExpertService {
      */
     @Override
     public Result findProjectApplication(String userId) {
-        List<ProjectApplication> projectApplicationList = new ArrayList<>();
+        List<ProjectApplicationInfo> projectApplicationList = new ArrayList<>();
         try {
             //在ReviewExpert表中找到expertId=userId且状态为2的待审核的信息
             ReviewExpertExample example = new ReviewExpertExample();
@@ -91,7 +91,8 @@ public class ExpertServiceImpl implements ExpertService {
                     ProjectApplicationInfo projectInfo = new ProjectApplicationInfo();
                     projectInfo.setUserId(projectApplication.getUserId());
                     projectInfo.setUserName(projectApplication.getUserName());
-                    projectInfo.setProjectCategoryName(projectCategoryMapper.selectByPrimaryKey(projectApplication.getProjectApplicationId()).getProjectCategoryName());
+                    ProjectCategory projectCategory = projectCategoryMapper.selectByPrimaryKey(projectApplication.getProjectCategoryId());
+                    projectInfo.setProjectCategoryName(projectCategory.getProjectCategoryName());
                     projectInfo.setProjectName(projectApplication.getProjectName());
                     projectInfo.setProjectApplicationId(projectApplication.getProjectApplicationId());
                     projectInfo.setDescription(projectApplication.getProjectDescription());
@@ -102,7 +103,7 @@ public class ExpertServiceImpl implements ExpertService {
                     } else {
                         projectInfo.setIsMeeting(false);
                     }
-                    projectApplicationList.add(projectApplication);
+                    projectApplicationList.add(projectInfo);
                 }
             }
             return ResultTool.success(projectApplicationList);
@@ -132,6 +133,7 @@ public class ExpertServiceImpl implements ExpertService {
             reviewExpert.setScore(expertJudgeInfo.getScore());
             reviewExpert.setReviewOpinion(expertJudgeInfo.getReviewOpinion());
             reviewExpert.setFinalOpinion(expertJudgeInfo.getFinalOpinion());
+            reviewExpert.setIsFinished(1);
             reviewExpertMapper.updateByPrimaryKey(reviewExpert);
 
             //审核完毕后将申请状态改为会评或者领导审核状态
