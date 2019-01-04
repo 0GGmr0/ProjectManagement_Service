@@ -3,6 +3,7 @@ package com.management.model.jsonrequestbody;
 
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -16,17 +17,16 @@ public class ProjectCategoryInfo {
     private String projectName;
     private String projectDescription;
     private String projectDescriptionAddress;
-    private Integer projectType;
     private String principalPhone;
-    private String applicantType;
+    private Integer projectType;
+    private List<String> applicantType;
     private String maxMoney;
-    private String reviewLeaderId;
     private String projectApplicationDownloadAddress;
-    private Integer isExistMeetingReview;
-    private String applicationStartTime;
-    private String applicationEndTime;
-    private String projectStartTime;
-    private String projectEndTime;
+    private Boolean isExistMeetingReview;
+    private Date applicationStartTime;
+    private Date applicationEndTime;
+    private Date projectStartTime;
+    private Date projectEndTime;
     private List<String> expertList;
 
 }

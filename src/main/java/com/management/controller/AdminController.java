@@ -41,7 +41,7 @@ public class AdminController {
         return adminService.chooseProjectMeeting(info);
     }
 
-    @PostMapping("/projectCategory/1")
+    @PostMapping("/createProjectCategory")
     @ApiOperation(value = "业务员创建项目类别,默认为待审核")
     public Result insertProjectCategory(@RequestHeader(value = "Authorization") String token,
                                         @RequestBody ProjectCategoryInfo projectCategoryInfo) {
@@ -56,7 +56,7 @@ public class AdminController {
         return adminService.updateProjectCategoryInfo(updateProjectCategoryInfo);
     }
 
-    @GetMapping("/projectCategory/3")
+    @GetMapping("/findMyProjectCategory")
     @ApiOperation(value = "查询业务员负责的项目详细信息", notes = "根据业务员Id查询业务员负责的项目详细信息")
     public Result queryProjectCategoryInfo(@RequestHeader(value = "Authorization") String token) {
 
@@ -89,5 +89,20 @@ public class AdminController {
     public Result getExpertList() {
 
         return adminService.findExpertList();
+    }
+
+    @GetMapping("/project/{projectId}")
+    @ApiOperation(value = "查找某个项目的全部审核专家的审核意见", notes = "根据项目id查找所有的审核专家的审核意见")
+    public Result findProjectCategoryInfo(@PathVariable(value = "projectId") int prId) {
+
+        return adminService.expertOpinionList(prId);
+    }
+
+    @GetMapping("/reviewPhase/{reviewPhase}")
+    @ApiOperation(value = "查找某个审核阶段的项目列表")
+    public Result findReviewPhaseInfo(@PathVariable(value = "reviewPhase") int reviewPhase,
+                                      @RequestHeader(value = "Authorization") String token) {
+        String userId = JwtUtil.parseJwt(token);
+        return adminService.findReviewPhaseList(userId, reviewPhase);
     }
 }

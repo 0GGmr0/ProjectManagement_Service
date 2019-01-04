@@ -6,9 +6,9 @@ import com.management.dao.ReviewExpertMapper;
 import com.management.dao.UserMapper;
 import com.management.model.entity.*;
 import com.management.model.jsonrequestbody.*;
+import com.management.model.jsonrequestbody.ProjectCategoryInfo;
 import com.management.model.ov.Result;
-import com.management.model.ov.resultsetting.ExpertListInfo;
-import com.management.model.ov.resultsetting.SomeoneAllProjectCategoryInfo;
+import com.management.model.ov.resultsetting.*;
 import com.management.service.AdminService;
 import com.management.tools.ResultTool;
 import com.management.tools.TimeTool;
@@ -57,38 +57,43 @@ public class AdminServiceImpl implements AdminService {
      */
     @Override
     public Result createProjectCategory(String userId, ProjectCategoryInfo projectCategoryInfo) {
-        /*将字符串时间格式转化为Date时间类型*/
-        Date applicationStartTime = TimeTool.stringToTime(projectCategoryInfo.getApplicationStartTime());
-        Date applicationEndTime = TimeTool.stringToTime(projectCategoryInfo.getApplicationEndTime());
-        Date projectStartTime = TimeTool.stringToTime(projectCategoryInfo.getProjectStartTime());
-        Date projectEndTime = TimeTool.stringToTime(projectCategoryInfo.getProjectEndTime());
+
         /*根据业务员id查询到业务员的信息及专家的id*/
-        User adminuser = userMapper.selectByPrimaryKey(userId);
-        User exportuser = userMapper.selectByPrimaryKey(projectCategoryInfo.getReviewLeaderId());
+        User adminUser = userMapper.selectByPrimaryKey(userId);
         ProjectCategory projectCategory = new ProjectCategory();
         try {
-            User user = userMapper.selectByPrimaryKey(userId);
-            projectCategory.setReviewLeaderId(user.getLeaderId());
+            projectCategory.setReviewLeaderId(adminUser.getLeaderId());
             projectCategory.setProjectCategoryName(projectCategoryInfo.getProjectName());
             projectCategory.setProjectCategoryDescription(projectCategoryInfo.getProjectDescription());
             projectCategory.setProjectApplicationDownloadAddress(projectCategoryInfo.getProjectApplicationDownloadAddress());
-            projectCategory.setProjectType(projectCategoryInfo.getProjectType());
-            projectCategory.setPrincipalId(adminuser.getUserId());
-            projectCategory.setPrincipalName(adminuser.getUserName());
+            projectCategory.setPrincipalId(adminUser.getUserId());
+            projectCategory.setPrincipalName(adminUser.getUserName());
             projectCategory.setPrincipalPhone(projectCategoryInfo.getPrincipalPhone());
-            projectCategory.setApplicantType(projectCategoryInfo.getApplicantType());
+            StringBuilder applicantType = new StringBuilder();
+            List<String> applicantList = projectCategoryInfo.getApplicantType();
+            int cou = applicantList.size();
+            for(int i = 0; i < cou; i++) {
+                applicantType.append(applicantList.get(i));
+                if(i != cou - 1) {
+                    applicantType.append("|");
+                }
+            }
+            projectCategory.setProjectType(projectCategoryInfo.getProjectType());
+            projectCategory.setApplicantType(applicantType.toString());
             projectCategory.setMaxMoney(projectCategoryInfo.getMaxMoney());
-            projectCategory.setProjectCategoryDescriptionAddress(projectCategoryInfo.getProjectDescriptionAddress());
-            projectCategory.setReviewLeaderId(projectCategoryInfo.getReviewLeaderId());
-            projectCategory.setReviewLeaderName(exportuser.getUserName());
-            projectCategory.setIsExistMeetingReview(projectCategoryInfo.getIsExistMeetingReview());
+            //projectCategory.setProjectCategoryDescriptionAddress(projectCategoryInfo.getProjectDescriptionAddress());
+            if(projectCategoryInfo.getIsExistMeetingReview().equals(true)){
+                projectCategory.setIsExistMeetingReview(1);
+            }else {
+                projectCategory.setIsExistMeetingReview(2);
+            }
             projectCategory.setIsInterimReportActivated(2);
-            projectCategory.setApplicationStartTime(applicationStartTime);
-            projectCategory.setApplicationEndTime(applicationEndTime);
-            projectCategory.setProjectStartTime(projectStartTime);
-            projectCategory.setProjectEndTime(projectEndTime);
+            projectCategory.setApplicationStartTime(projectCategoryInfo.getApplicationStartTime());
+            projectCategory.setApplicationEndTime(projectCategoryInfo.getApplicationEndTime());
+            projectCategory.setProjectStartTime(projectCategoryInfo.getProjectStartTime());
+            projectCategory.setProjectEndTime(projectCategoryInfo.getProjectEndTime());
             projectCategory.setStatistics(0);
-            projectCategory.setIsApproved(2);
+            projectCategory.setIsApproved(1);
             projectCategory.setIsConcludingReportActivated(2);
             StringBuilder experts = new StringBuilder();
             List<String> list = projectCategoryInfo.getExpertList();
@@ -121,18 +126,89 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Result queryProjectCategory(String userId) {
         ProjectCategoryExample projectCategoryExample = new ProjectCategoryExample();
-        try {
-            projectCategoryExample.createCriteria()
-                    .andPrincipalIdEqualTo(userId);
-            List<ProjectCategory> projectCategoryList = projectCategoryMapper.selectByExample(projectCategoryExample);
-            Result result = ResultTool.success(projectCategoryList);
-            result.setMessage("成功");
-            return result;
-        } catch (Exception e) {
-            Result result = ResultTool.error();
-            result.setMessage("失败");
-            return result;
+        projectCategoryExample.createCriteria()
+                .andPrincipalIdEqualTo(userId);
+        List<ProjectCategory> projectCategoryList = projectCategoryMapper.selectByExample(projectCategoryExample);
+        if(projectCategoryList.isEmpty()) {
+            return ResultTool.error("您没有开通任何的项目大类");
         }
+        List<AdminListInfo> resList = new LinkedList<>();
+        for(ProjectCategory projectCategory : projectCategoryList) {
+            AdminListInfo res = new AdminListInfo();
+            res.setProjectName(projectCategory.getProjectCategoryName());
+            res.setProjectDescription(projectCategory
+                    .getProjectCategoryDescription());
+            res.setProjectDescriptionAddress(projectCategory
+                    .getProjectCategoryDescriptionAddress());
+            res.setPrincipalPhone(projectCategory.getPrincipalPhone());
+            res.setProjectType(ConstCorrespond.PROJECT_TYPE[projectCategory.getProjectType()]);
+            String[] applicantTypeArray = projectCategory.getApplicantType().split("\\|");
+            int cou = 0;
+            for(String applicantType : applicantTypeArray) {
+                applicantTypeArray[cou++] = ConstCorrespond.APPLICAN_TTYPE[
+                        Integer.parseInt(applicantType)];
+            }
+            List<String> applicantTypeTrueList = new LinkedList<>(
+                    Arrays.asList(applicantTypeArray));
+            res.setApplicantType(applicantTypeTrueList);
+            res.setMaxMoney(projectCategory.getMaxMoney());
+            res.setProjectApplicationDownloadAddress(projectCategory
+                    .getProjectApplicationDownloadAddress());
+            res.setIsExistMeetingReview(projectCategory.getIsExistMeetingReview());
+            res.setApplicationStartTime(timetoString(projectCategory
+                    .getApplicationStartTime()));
+            res.setApplicationEndTime(timetoString(projectCategory
+                    .getApplicationEndTime()));
+            res.setProjectStartTime(timetoString(projectCategory
+                    .getProjectStartTime()));
+            res.setProjectEndTime(timetoString(projectCategory
+                    .getProjectEndTime()));
+            String[] expertArray = projectCategory.getExpertList().split("\\|");
+            List<ExpertListInfo> list = new LinkedList<>();
+            for(String expertId : expertArray) {
+                User user = userMapper.selectByPrimaryKey(expertId);
+                ExpertListInfo info = new ExpertListInfo();
+                info.setUserName(user.getUserName());
+                info.setUserId(user.getUserId());
+                info.setPhone(user.getPhone());
+                info.setMail(user.getMail());
+                info.setDepartment(user.getDepartment());
+                list.add(info);
+            }
+            res.setExpertList(list);
+            ReportInfo interimInfo = new ReportInfo();
+            if(projectCategory.getIsInterimReportActivated() == 1) {
+                interimInfo.setDeadline(timetoString(projectCategory
+                        .getInterimReportEndTime()));
+                interimInfo.setIsReportActivated(true);
+                interimInfo.setStartTime(timetoString(projectCategory
+                        .getInterimReportStartTime()));
+                interimInfo.setReportTemplateAddress(projectCategory
+                        .getInterimReportDownloadAddress());
+                res.setInterimReport(interimInfo);
+            } else {
+                interimInfo.setIsReportActivated(false);
+            }
+            res.setInterimReport(interimInfo);
+            ReportInfo concludingInfo = new ReportInfo();
+            if(projectCategory.getIsConcludingReportActivated() == 1) {
+
+                concludingInfo.setDeadline(timetoString(projectCategory
+                        .getConcludingReportEndTime()));
+                concludingInfo.setIsReportActivated(true);
+                concludingInfo.setStartTime(timetoString(projectCategory
+                        .getConcludingReportStartTime()));
+                concludingInfo.setReportTemplateAddress(projectCategory
+                        .getConcludingReportDownloadAddress());
+                res.setConcludingReport(concludingInfo);
+            } else {
+                concludingInfo.setIsReportActivated(false);
+            }
+            res.setConcludingReport(concludingInfo);
+            resList.add(res);
+        }
+        return ResultTool.success(resList);
+
     }
 
     /**
@@ -147,26 +223,24 @@ public class AdminServiceImpl implements AdminService {
 
         ProjectCategory projectCategory = projectCategoryMapper.selectByPrimaryKey(updateProjectCategoryInfo.getProjectCategoryId());
         ProjectCategoryInfo projectCategoryInfo = updateProjectCategoryInfo.getProjectCategoryInfo();
-        /*将字符串时间格式转化为Date时间类型*/
-        Date applicationStartTime = TimeTool.stringToTime(projectCategoryInfo.getApplicationStartTime());
-        Date applicationEndTime = TimeTool.stringToTime(projectCategoryInfo.getApplicationEndTime());
-        Date projectStartTime = TimeTool.stringToTime(projectCategoryInfo.getProjectStartTime());
-        Date projectEndTime = TimeTool.stringToTime(projectCategoryInfo.getProjectEndTime());
         try {
             projectCategory.setProjectCategoryName(projectCategoryInfo.getProjectName());
             projectCategory.setProjectCategoryDescription(projectCategoryInfo.getProjectDescription());
             projectCategory.setProjectApplicationDownloadAddress(projectCategoryInfo.getProjectApplicationDownloadAddress());
-            projectCategory.setProjectType(projectCategoryInfo.getProjectType());
             projectCategory.setPrincipalPhone(projectCategoryInfo.getPrincipalPhone());
-            projectCategory.setApplicantType(projectCategoryInfo.getApplicantType());
+//            projectCategory.setApplicantType(projectCategoryInfo.getApplicantType());
             projectCategory.setMaxMoney(projectCategoryInfo.getMaxMoney());
             projectCategory.setProjectCategoryDescriptionAddress(projectCategoryInfo.getProjectDescriptionAddress());
-            projectCategory.setReviewLeaderId(projectCategoryInfo.getReviewLeaderId());
-            projectCategory.setIsExistMeetingReview(projectCategoryInfo.getIsExistMeetingReview());
-            projectCategory.setApplicationStartTime(applicationStartTime);
-            projectCategory.setApplicationEndTime(applicationEndTime);
-            projectCategory.setProjectStartTime(projectStartTime);
-            projectCategory.setProjectEndTime(projectEndTime);
+            if(projectCategoryInfo.getIsExistMeetingReview().equals(true)){
+                projectCategory.setIsExistMeetingReview(1);
+            }else {
+                projectCategory.setIsExistMeetingReview(2);
+            }
+
+            projectCategory.setApplicationStartTime(projectCategoryInfo.getApplicationStartTime());
+            projectCategory.setApplicationEndTime(projectCategoryInfo.getApplicationEndTime());
+            projectCategory.setProjectStartTime(projectCategoryInfo.getProjectStartTime());
+            projectCategory.setProjectEndTime(projectCategoryInfo.getProjectEndTime());
             projectCategoryMapper.updateByPrimaryKey(projectCategory);
 
             Result result = ResultTool.success();
@@ -260,7 +334,8 @@ public class AdminServiceImpl implements AdminService {
             return ResultTool.error("不能给予空的上会项目列表");
         }
         for (ProjectMeetingInfo project : meetingList) {
-            ProjectApplication projectApplication = projectApplicationMapper.selectByPrimaryKey(project.getApplicationId());
+            ProjectApplication projectApplication = projectApplicationMapper
+                    .selectByPrimaryKey(project.getApplicationId());
             if(project.getIsMeeting()) {
                 projectApplication.setReviewPhase(MEETING_REVIEW);
             } else {
@@ -278,14 +353,18 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Result oneJudge(OneJudgeInfo info) {
-        ProjectApplication res = projectApplicationMapper.selectByPrimaryKey(info.getApplicationId());
-        ProjectCategory category = projectCategoryMapper.selectByPrimaryKey(res.getProjectCategoryId());
+        ProjectApplication res = projectApplicationMapper
+                .selectByPrimaryKey(info.getApplicationId());
+        ProjectCategory category = projectCategoryMapper
+                .selectByPrimaryKey(res.getProjectCategoryId());
         if(info.getJudge()) {
             res.setReviewPhase(EXPERT_REVIEW);
             String[] experts = category.getExpertList().split("\\|");
             for(String expertId : experts) {
+                User user = userMapper.selectByPrimaryKey(expertId);
                 ReviewExpert expert = new ReviewExpert();
                 expert.setExpertId(expertId);
+                expert.setExpertName(user.getUserName());
                 expert.setProjectApplicationId(info.getApplicationId());
                 expert.setIsFinished(EXPERT_NOT_FINISH);
                 try {
@@ -343,4 +422,79 @@ public class AdminServiceImpl implements AdminService {
         }
         return ResultTool.success(resList);
     }
+
+    @Override
+    public Result findReviewPhaseList(String userId, int reviewPhase) {
+        ProjectCategoryExample example = new ProjectCategoryExample();
+        example.createCriteria()
+                .andPrincipalIdEqualTo(userId)
+            .andApplicationEndTimeGreaterThan(new Date());
+        List<ProjectCategory> list = projectCategoryMapper.selectByExample(example);
+        if(list.isEmpty()) {
+            return ResultTool.error("你没有创建任何的项目大类");
+        }
+        List<AdminJudgeTotalInfo> resList = new LinkedList<>();
+        for(ProjectCategory category : list) {
+            ProjectApplicationExample applicationExample = new ProjectApplicationExample();
+            applicationExample.createCriteria()
+                    .andProjectCategoryIdEqualTo(category.getProjectCategoryId())
+                    .andReviewPhaseEqualTo(reviewPhase);
+            List<ProjectApplication> applicationList = projectApplicationMapper
+                    .selectByExample(applicationExample);
+            if(applicationList.isEmpty()) continue;
+            AdminJudgeTotalInfo res = new AdminJudgeTotalInfo();
+            res.setApplicationDeadLine(timetoString(category.getApplicationEndTime()));
+            res.setProjectCategoryId(category.getProjectCategoryId());
+            res.setProjectCategoryName(category.getProjectCategoryName());
+            List<AdminJudgeInfo> infoList = new LinkedList<>();
+            for(ProjectApplication application : applicationList) {
+                AdminJudgeInfo info = new AdminJudgeInfo();
+                info.setProjectApplicationDownloadAddress(application
+                        .getProjectApplicationUploadAddress());
+                info.setProjectName(application.getProjectName());
+                info.setDescription(application.getProjectDescription());
+                infoList.add(info);
+            }
+            res.setList(infoList);
+            resList.add(res);
+        }
+        return ResultTool.success(resList);
+    }
+
+    /**
+     * @Description: expertOpinionList接口的实现
+     * @Param: [projectId]
+     * @Return: com.management.model.ov.Result
+     * @Author: ggmr
+     * @Date: 18-8-1
+     */
+    @Override
+    public Result expertOpinionList(int projectId) {
+        ProjectApplication projectApplication = projectApplicationMapper
+                .selectByPrimaryKey(projectId);
+        if (projectApplication == null) {
+            return ResultTool.error("给予的项目id有误");
+        }
+        ReviewExpertExample reviewExpertExample = new ReviewExpertExample();
+        reviewExpertExample.createCriteria()
+                .andProjectApplicationIdEqualTo(projectId);
+        List<ReviewExpert> reviewExpertList = reviewExpertMapper
+                .selectByExample(reviewExpertExample);
+        List<ExpertOpinionInfo> list = new LinkedList<>();
+        for (ReviewExpert reviewExpert : reviewExpertList) {
+            ExpertOpinionInfo expertOpinionInfo = new ExpertOpinionInfo();
+            expertOpinionInfo.setExpertId(reviewExpert.getExpertId());
+            expertOpinionInfo.setExpertName(reviewExpert.getExpertName());
+            expertOpinionInfo.setIsFinished(reviewExpert.getIsFinished());
+            if(reviewExpert.getIsFinished() == 1) {
+                expertOpinionInfo.setFinalOpinion(reviewExpert.getFinalOpinion());
+                expertOpinionInfo.setReviewOpinion(reviewExpert.getReviewOpinion());
+                expertOpinionInfo.setScore(reviewExpert.getScore());
+            }
+            list.add(expertOpinionInfo);
+        }
+        return ResultTool.success(list);
+
+    }
+
 }
