@@ -5,9 +5,11 @@ import com.management.model.jsonrequestbody.*;
 import com.management.model.ov.Result;
 import com.management.security.UserContext;
 import com.management.service.UserService;
+import com.management.tools.JwtUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -65,6 +67,7 @@ public class UserController {
         return userService.projectJudgeResult(info);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @GetMapping("/AllAviProjectCategory")
     @ApiOperation(value = "查找当前可以申报的所有的项目大类", notes = "根据类别去分类所有的项目大类并返回给用户")
     public Result findAllAViProjectCategory() {
@@ -86,13 +89,14 @@ public class UserController {
         return userService.updateUserInfo(user);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @PostMapping("/applyProject")
     @ApiOperation(value = "用户申请一个项目")
     public Result applyProject(@RequestBody ProjectApplicationInfo info) {
         return userService.applyProject(info);
     }
 
-
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @GetMapping("/inTheApplicationList")
     @ApiOperation(value = "查找用户正在申报中的项目")
     public Result inTheApplicationList() {
@@ -100,6 +104,7 @@ public class UserController {
         return userService.findMyApplication(userId);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @PostMapping("/deleteApplication")
     @ApiOperation(value = "用户撤销申报中的项目")
     public Result deleteApplication(@RequestBody DeleteApplication info) {
@@ -107,13 +112,16 @@ public class UserController {
         return userService.deleteApplication(info, userId);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @GetMapping("/progressProject")
     @ApiOperation(value = "查找用户正在进行的项目")
-    public Result findProgressProject() {
-        String userId = UserContext.getCurrentUser().getUserId();
+
+    public Result findProgressProject(@RequestHeader(value = "Authorization") String token){
+        String userId = JwtUtil.parseJwt(token);
         return userService.findProgressProject(userId);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @PostMapping("/commitReport")
     @ApiOperation(value = "用户提交中期报告和结题报告")
     public Result deleteApplication(@RequestBody PostReportInfo info) {
@@ -121,6 +129,7 @@ public class UserController {
         return userService.commitReport(info);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @GetMapping("/projectMoreInfo")
     @ApiOperation(value = "查看用户一个项目的详细信息")
     public Result findProjectMoreInfo(@RequestParam(value = "applicationId") int applicationId) {

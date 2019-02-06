@@ -1,6 +1,14 @@
 package com.management.model.entity;
 
-public class User {
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+public class User implements UserDetails {
     private String userId;
 
     private String userName;
@@ -23,7 +31,33 @@ public class User {
 
     private String leaderId;
 
+<<<<<<< HEAD
     private Integer identity;
+=======
+    private String password;
+
+
+    /*
+    以下是配置用户的角色用于权限控制
+     */
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<GrantedAuthority> auths = new ArrayList<>();
+        if(this.identity == 1){
+            auths.add(new SimpleGrantedAuthority("ROLE_USER"));
+        }else if(this.identity == 2){
+            auths.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        }else if(this.identity == 3){
+            auths.add(new SimpleGrantedAuthority("ROLE_EXPERT"));
+        }else if(this.identity == 4){
+            auths.add(new SimpleGrantedAuthority("ROLE_LEADER"));
+        }
+
+        //System.out.print(auths);
+        return auths;
+    }
+
+>>>>>>> 574540438b108192e094b0cd7e32b3380c1043f9
 
     public String getUserId() {
         return userId;
@@ -36,6 +70,7 @@ public class User {
     public String getUserName() {
         return userName;
     }
+
 
     public void setUserName(String userName) {
         this.userName = userName == null ? null : userName.trim();
@@ -113,11 +148,50 @@ public class User {
         this.leaderId = leaderId == null ? null : leaderId.trim();
     }
 
+<<<<<<< HEAD
     public Integer getIdentity() {
         return identity;
     }
 
     public void setIdentity(Integer identity) {
         this.identity = identity;
+=======
+    /*
+    以下是implements UserDetails所必写内容,无实际意义,暂时先不删除
+     */
+
+    @Override
+    public String getUsername() {
+        return userId;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+>>>>>>> 574540438b108192e094b0cd7e32b3380c1043f9
     }
 }

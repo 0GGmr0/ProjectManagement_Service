@@ -13,7 +13,11 @@ import java.util.Date;
 public class TimeTool {
     public static Date stringToTime(String time){
         /*将字符串时间格式转化为Date时间类型*/
+<<<<<<< HEAD
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+=======
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+>>>>>>> 574540438b108192e094b0cd7e32b3380c1043f9
         try{
             return dateFormat.parse(time);
         }catch (ParseException e){

@@ -16,7 +16,16 @@ public class ConstCorrespond {
             "生物化学类"
     };
 
-    public final static String[] APPLICAN_TYPE = {
+    //用户角色枚举值
+    public final static String[] IDENTITY_TYPE = {
+            "",
+            "ROLE_USER",
+            "ROLE_ADMIN",
+            "ROLE_EXPERT",
+            "ROLE_LEADER"
+    };
+
+    public final static String[] APPLICAN_TTYPE = {
             "",
             "本科生",
             "研究生",

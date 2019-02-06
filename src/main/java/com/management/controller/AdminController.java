@@ -1,6 +1,7 @@
 package com.management.controller;
 
 import com.management.model.entity.User;
+import com.management.dao.ProjectCategoryMapper;
 import com.management.model.jsonrequestbody.*;
 import com.management.model.ov.Result;
 import com.management.security.UserContext;
@@ -33,6 +34,8 @@ public class AdminController {
     @Resource
     @ApiParam("和专家相关的业务操作")
     private AdminService adminService;
+    @Resource
+    private ProjectCategoryMapper projectCategoryMapper;
 
     @Resource
     @ApiParam("用户通用的业务")
@@ -89,6 +92,13 @@ public class AdminController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LEADER')")
+    @GetMapping("/findProjectCategory/{projectId}")
+    @ApiOperation(value = "业务员根据项目大类id来查询具体信息")
+    public Result queryProCategoryInfoById(@PathVariable(value = "projectId") Integer projectId){
+
+        return adminService.queryProjectById(projectId);
+    }
+
     @PostMapping("deleteProjectCategory")
     @ApiOperation(value = "根据项目大类id删除项目大类信息")
     public Result deleteProjectCategory(@RequestBody DeleteProjectCategoryInfo info) {
