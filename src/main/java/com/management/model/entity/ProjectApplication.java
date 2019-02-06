@@ -13,6 +13,12 @@ public class ProjectApplication {
 
     private String projectDescription;
 
+    private String projectIndex;
+
+    private Boolean projectIndexState;
+
+    private Integer projectMoney;
+
     private String userId;
 
     private String userName;
@@ -40,6 +46,14 @@ public class ProjectApplication {
     private String failureReason;
 
     private Date applicationTime;
+
+    private Date applicationDeadline;
+
+    private Date middleDeadline;
+
+    private Date finalDeadline;
+
+    private Date projectDeadline;
 
     public Integer getProjectApplicationId() {
         return projectApplicationId;
@@ -79,6 +93,30 @@ public class ProjectApplication {
 
     public void setProjectDescription(String projectDescription) {
         this.projectDescription = projectDescription == null ? null : projectDescription.trim();
+    }
+
+    public String getProjectIndex() {
+        return projectIndex;
+    }
+
+    public void setProjectIndex(String projectIndex) {
+        this.projectIndex = projectIndex == null ? null : projectIndex.trim();
+    }
+
+    public Boolean getProjectIndexState() {
+        return projectIndexState;
+    }
+
+    public void setProjectIndexState(Boolean projectIndexState) {
+        this.projectIndexState = projectIndexState;
+    }
+
+    public Integer getProjectMoney() {
+        return projectMoney;
+    }
+
+    public void setProjectMoney(Integer projectMoney) {
+        this.projectMoney = projectMoney;
     }
 
     public String getUserId() {
@@ -191,5 +229,37 @@ public class ProjectApplication {
 
     public void setApplicationTime(Date applicationTime) {
         this.applicationTime = applicationTime;
+    }
+
+    public Date getApplicationDeadline() {
+        return applicationDeadline;
+    }
+
+    public void setApplicationDeadline(Date applicationDeadline) {
+        this.applicationDeadline = applicationDeadline;
+    }
+
+    public Date getMiddleDeadline() {
+        return middleDeadline;
+    }
+
+    public void setMiddleDeadline(Date middleDeadline) {
+        this.middleDeadline = middleDeadline;
+    }
+
+    public Date getFinalDeadline() {
+        return finalDeadline;
+    }
+
+    public void setFinalDeadline(Date finalDeadline) {
+        this.finalDeadline = finalDeadline;
+    }
+
+    public Date getProjectDeadline() {
+        return projectDeadline;
+    }
+
+    public void setProjectDeadline(Date projectDeadline) {
+        this.projectDeadline = projectDeadline;
     }
 }
